@@ -3,11 +3,14 @@ package com.lcwd.user.service.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.lcwd.user.service.entities.Hotel;
 import com.lcwd.user.service.entities.Rating;
 import com.lcwd.user.service.entities.User;
 import com.lcwd.user.service.exceptions.ResourceNotFoundException;
@@ -44,8 +47,18 @@ public class UserServiceImpl implements UserService {
 		User user =  userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User with given Id is not found on srever :"+userId));
 	ArrayList<Rating> forObject = restTemplate.getForObject("http://localhost:8083/ratings/users/"+user.getUserId(), ArrayList.class);
 	System.out.println(forObject);
+	
+	forObject.stream().map(rating->{
+		
+	Hotel ho = 	restTemplate.getForObject("http://localhost:8082/hotels/"+rating.getHotelId(), Hotel.class);
+	rating.setHotel(ho);
+	//user.setHotel(ho);
+	return rating;
+	}).collect(Collectors.toList());
+	
+	
 	user.setRatings(forObject);
 	return user;
 	}
-
+	
 }

@@ -25,6 +25,7 @@ public class User {
 	@Transient
 	private List<Rating> ratings ;
 	
+	
 	public String getUserId() {
 		return userId;
 	}
