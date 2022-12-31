@@ -14,6 +14,7 @@ import com.lcwd.user.service.entities.Hotel;
 import com.lcwd.user.service.entities.Rating;
 import com.lcwd.user.service.entities.User;
 import com.lcwd.user.service.exceptions.ResourceNotFoundException;
+import com.lcwd.user.service.feignClient.RatingServiceFeignClient;
 import com.lcwd.user.service.repositories.UserRepository;
 import com.lcwd.user.service.services.UserService;
 
@@ -25,6 +26,8 @@ public class UserServiceImpl implements UserService {
 	private UserRepository userRepository;
 	@Autowired
 	private RestTemplate restTemplate;
+	@Autowired
+	private RatingServiceFeignClient ratingFeignClient;
 	
 
 	@Override
@@ -45,18 +48,13 @@ public class UserServiceImpl implements UserService {
 	public User getUserById(String userId) {
 		// TODO Auto-generated method stub
 		User user =  userRepository.findById(userId).orElseThrow(()->new ResourceNotFoundException("User with given Id is not found on srever :"+userId));
-	ArrayList<Rating> forObject = restTemplate.getForObject("http://localhost:8083/ratings/users/"+user.getUserId(), ArrayList.class);
-	System.out.println(forObject);
-	
-	forObject.stream().map(rating->{
+//	ArrayList<Rating> forObject = restTemplate.getForObject("http://Rating-Service/ratings/users/"+user.getUserId(), ArrayList.class);
+			ArrayList<Rating> forObject = ratingFeignClient.getRating(userId);
 		
-	Hotel ho = 	restTemplate.getForObject("http://localhost:8082/hotels/"+rating.getHotelId(), Hotel.class);
-	rating.setHotel(ho);
-	//user.setHotel(ho);
-	return rating;
-	}).collect(Collectors.toList());
+		
+		System.out.println(forObject);
 	
-	
+
 	user.setRatings(forObject);
 	return user;
 	}
